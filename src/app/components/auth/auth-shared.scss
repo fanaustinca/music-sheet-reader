@@ -1,0 +1,50 @@
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  padding: 1rem;
+}
+
+.auth-card {
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 1.5rem;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+
+  .logo { font-size: 3rem; margin-bottom: 0.5rem; }
+
+  h1 { color: #e2b96f; font-size: 1.4rem; margin: 0 0 0.25rem; }
+  h2 { color: rgba(255,255,255,0.7); font-size: 1rem; font-weight: 400; margin: 0 0 2rem; }
+
+  .field {
+    text-align: left;
+    margin-bottom: 1rem;
+    label { display: block; color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-bottom: 0.4rem; }
+    input {
+      width: 100%; padding: 0.75rem 1rem; border-radius: 0.75rem;
+      border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.08);
+      color: #fff; font-size: 1rem; box-sizing: border-box;
+      &:focus { outline: none; border-color: #e2b96f; }
+    }
+  }
+
+  .error { color: #ff6b6b; font-size: 0.85rem; margin-bottom: 1rem; }
+
+  button {
+    width: 100%; padding: 0.85rem; border-radius: 0.75rem;
+    background: #e2b96f; color: #1a1a2e; border: none;
+    font-size: 1rem; font-weight: 700; cursor: pointer; transition: opacity 0.2s;
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+    &:hover:not(:disabled) { opacity: 0.9; }
+  }
+
+  .switch { color: rgba(255,255,255,0.5); font-size: 0.9rem; margin-top: 1.5rem;
+    a { color: #e2b96f; text-decoration: none; font-weight: 600; }
+  }
+}

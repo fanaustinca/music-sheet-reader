@@ -1,0 +1,16 @@
+<div class="home-page">
+  <div class="header">
+    <span class="logo">🎵</span>
+    <button class="logout-btn" (click)="logout()">Logout</button>
+  </div>
+  <div class="hero">
+    <h1>Hello, {{ user }}!</h1>
+    <p>Snap a photo of any music sheet and get the notes instantly.</p>
+    <a routerLink="/scan" class="scan-btn">📷 Scan a Music Sheet</a>
+  </div>
+  <div class="features">
+    <div class="feature"><span>📸</span><p>Take a photo or upload</p></div>
+    <div class="feature"><span>🤖</span><p>AI-powered note detection</p></div>
+    <div class="feature"><span>🎼</span><p>Get notes in letter format</p></div>
+  </div>
+</div>

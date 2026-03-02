@@ -1,0 +1,70 @@
+<div class="scanner-page">
+  <div class="top-bar">
+    <a routerLink="/" class="back-btn">← Back</a>
+    <h1>Scan Sheet</h1>
+  </div>
+
+  <div class="upload-area" [class.has-file]="filePreview || isPdf">
+    <ng-container *ngIf="!filePreview && !isPdf">
+      <div class="placeholder">
+        <span>📄</span>
+        <p>No file selected</p>
+      </div>
+    </ng-container>
+    <div *ngIf="isPdf" class="pdf-preview">
+      <span>📋</span>
+      <p>PDF ready to analyze</p>
+    </div>
+    <img *ngIf="filePreview" [src]="filePreview" alt="Music sheet preview" />
+  </div>
+
+  <div class="buttons">
+    <label class="btn btn-secondary">
+      📷 Camera
+      <input type="file" accept="image/*" capture="environment" (change)="onFileSelected($event)" hidden />
+    </label>
+    <label class="btn btn-secondary">
+      🖼️ Image
+      <input type="file" accept="image/*" (change)="onFileSelected($event)" hidden />
+    </label>
+    <label class="btn btn-secondary">
+      📄 PDF
+      <input type="file" accept="application/pdf" (change)="onFileSelected($event)" hidden />
+    </label>
+  </div>
+
+  <button class="btn btn-primary" (click)="analyze()" [disabled]="(!filePreview && !isPdf) || loading">
+    <span *ngIf="!loading">🎵 Analyze Sheet</span>
+    <span *ngIf="loading">⏳ Analyzing...</span>
+  </button>
+
+  <div class="error-card" *ngIf="error">⚠️ {{ error }}</div>
+
+  <div class="results-card" *ngIf="result">
+    <div class="metadata">
+      <div class="meta-row" *ngIf="result.title">
+        <span class="label">Title</span><span>{{ result.title }}</span>
+      </div>
+      <div class="meta-row" *ngIf="result.composer">
+        <span class="label">Composer</span><span>{{ result.composer }}</span>
+      </div>
+      <div class="meta-row" *ngIf="result.key">
+        <span class="label">Key</span><span>{{ result.key }}</span>
+      </div>
+      <div class="meta-row" *ngIf="result.timeSignature">
+        <span class="label">Time</span><span>{{ result.timeSignature }}</span>
+      </div>
+      <div class="meta-row" *ngIf="result.tempo">
+        <span class="label">Tempo</span><span>{{ result.tempo }}</span>
+      </div>
+    </div>
+
+    <h2>🎼 Notes</h2>
+    <div class="notes-grid">
+      <div class="note-chip" *ngFor="let n of result.notes">
+        <span class="note-name">{{ n.note }}</span>
+        <span class="note-dur">{{ n.duration }}</span>
+      </div>
+    </div>
+  </div>
+</div>

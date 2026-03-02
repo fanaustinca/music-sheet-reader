@@ -1,0 +1,20 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="logo">🎵</div>
+    <h1>MusicSheet Reader</h1>
+    <h2>Welcome back</h2>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="field">
+        <label>Email</label>
+        <input type="email" formControlName="email" placeholder="you@example.com" />
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" formControlName="password" placeholder="••••••••" />
+      </div>
+      <div class="error" *ngIf="error">{{ error }}</div>
+      <button type="submit" [disabled]="form.invalid">Log In</button>
+    </form>
+    <p class="switch">No account? <a routerLink="/auth/signup">Sign up</a></p>
+  </div>
+</div>
