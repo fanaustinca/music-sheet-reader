@@ -25,15 +25,12 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-
   &.has-file { border-style: solid; border-color: #e2b96f; }
-
   .placeholder, .pdf-preview {
     text-align: center;
     span { font-size: 3rem; display: block; margin-bottom: 0.5rem; }
     p { color: rgba(255,255,255,0.4); margin: 0; }
   }
-
   img { width: 100%; max-height: 300px; object-fit: contain; border-radius: 0.75rem; }
 }
 
@@ -69,10 +66,20 @@
     border: 1px solid rgba(255,255,255,0.2);
     &:hover { background: rgba(255,255,255,0.2); }
   }
+
+  &-practice {
+    background: linear-gradient(135deg, #e2b96f, #c49a4a);
+    color: #1a1a2e;
+    font-weight: 700;
+    margin-top: 0.5rem;
+    &:hover { opacity: 0.9; }
+  }
 }
 
+.retry-btn { margin-top: 0.5rem; }
+
 .error-card {
-  background: rgba(255, 100, 100, 0.15);
+  background: rgba(255,100,100,0.15);
   border: 1px solid rgba(255,100,100,0.4);
   border-radius: 0.75rem;
   padding: 1rem;
@@ -80,12 +87,32 @@
   color: #ff9a9a;
 }
 
+// ── BPM slider ────────────────────────────────────────────────────────────────
+
+.bpm-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+
+  .bpm-label { color: rgba(255,255,255,0.55); font-size: 0.85rem; white-space: nowrap; }
+  .bpm-val   { color: #e2b96f; font-size: 0.85rem; font-weight: 700; white-space: nowrap; min-width: 56px; }
+
+  input[type="range"] {
+    flex: 1;
+    accent-color: #e2b96f;
+    height: 4px;
+    cursor: pointer;
+  }
+}
+
+// ── Analysis results ──────────────────────────────────────────────────────────
+
 .results-card {
-  background: rgba(226, 185, 111, 0.08);
-  border: 1px solid rgba(226, 185, 111, 0.3);
+  background: rgba(226,185,111,0.08);
+  border: 1px solid rgba(226,185,111,0.3);
   border-radius: 1rem;
   padding: 1.25rem;
-
   h2 { margin: 1rem 0 0.75rem; font-size: 1.1rem; color: #e2b96f; }
 }
 
@@ -93,7 +120,6 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  margin-bottom: 0.25rem;
 }
 
 .meta-row {
@@ -101,7 +127,6 @@
   align-items: baseline;
   gap: 0.75rem;
   font-size: 0.95rem;
-
   .label {
     color: #e2b96f;
     font-size: 0.75rem;
@@ -116,6 +141,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  margin-top: 0.25rem;
 }
 
 .note-chip {
@@ -126,13 +152,15 @@
   border: 1px solid rgba(255,255,255,0.15);
   border-radius: 0.6rem;
   padding: 0.4rem 0.6rem;
-  min-width: 52px;
+  min-width: 48px;
+  transition: background 0.2s, border-color 0.2s;
 
   .note-name {
     font-family: 'Courier New', monospace;
     font-size: 1rem;
     font-weight: 700;
     color: #fff;
+    transition: color 0.2s;
   }
 
   .note-dur {
@@ -141,4 +169,105 @@
     text-transform: capitalize;
     margin-top: 0.15rem;
   }
+
+  &.correct { border-color: #4caf50; background: rgba(76,175,80,0.2); .note-name { color: #4caf50; } }
+  &.wrong   { border-color: #f44336; background: rgba(244,67,54,0.2); .note-name { color: #f44336; } }
+}
+
+// ── Practice mode ─────────────────────────────────────────────────────────────
+
+.practice-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(226,185,111,0.4);
+  border-radius: 1rem;
+  padding: 1.25rem;
+}
+
+.practice-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  h2 { margin: 0; font-size: 1.1rem; color: #e2b96f; }
+
+  .stop-btn {
+    background: rgba(255,100,100,0.15);
+    border: 1px solid rgba(255,100,100,0.4);
+    color: #ff9a9a;
+    padding: 0.4rem 0.85rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    &:hover { background: rgba(255,100,100,0.25); }
+  }
+}
+
+// Canvas fills its wrapper edge-to-edge
+.canvas-wrap {
+  margin-top: 1rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: #0a0f1e;
+  canvas { display: block; width: 100%; }
+}
+
+.practice-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.75rem;
+}
+
+.detected-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  .det-label { color: rgba(255,255,255,0.45); font-size: 0.85rem; }
+  .det-note {
+    font-family: 'Courier New', monospace;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.35);
+    transition: color 0.15s;
+    &.match { color: #4caf50; }
+  }
+}
+
+.progress-text {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.4);
+}
+
+// ── Practice complete ─────────────────────────────────────────────────────────
+
+.complete-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(226,185,111,0.3);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+
+  .complete-emoji { font-size: 3rem; margin-bottom: 0.5rem; }
+  h2 { margin: 0 0 0.75rem; color: #e2b96f; font-size: 1.3rem; }
+  .accuracy-score { font-size: 4rem; font-weight: 900; color: #e2b96f; line-height: 1; }
+  .accuracy-label { color: rgba(255,255,255,0.45); font-size: 0.85rem; margin-bottom: 0.75rem; }
+}
+
+.result-legend {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  font-size: 0.8rem;
+  margin-bottom: 0.75rem;
+  .leg-correct { color: #4caf50; }
+  .leg-wrong   { color: #f44336; }
+}
+
+.result-staff-wrap {
+  background: #0a0f1e;
+  border-radius: 0.75rem;
+  overflow-y: auto;
+  max-height: 420px;
+  margin-bottom: 1rem;
+  canvas { display: block; width: 100%; }
 }

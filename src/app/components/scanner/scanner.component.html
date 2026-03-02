@@ -4,17 +4,12 @@
     <h1>Scan Sheet</h1>
   </div>
 
+  <!-- File upload -->
   <div class="upload-area" [class.has-file]="filePreview || isPdf">
     <ng-container *ngIf="!filePreview && !isPdf">
-      <div class="placeholder">
-        <span>📄</span>
-        <p>No file selected</p>
-      </div>
+      <div class="placeholder"><span>📄</span><p>No file selected</p></div>
     </ng-container>
-    <div *ngIf="isPdf" class="pdf-preview">
-      <span>📋</span>
-      <p>PDF ready to analyze</p>
-    </div>
+    <div *ngIf="isPdf" class="pdf-preview"><span>📋</span><p>PDF ready to analyze</p></div>
     <img *ngIf="filePreview" [src]="filePreview" alt="Music sheet preview" />
   </div>
 
@@ -40,23 +35,14 @@
 
   <div class="error-card" *ngIf="error">⚠️ {{ error }}</div>
 
-  <div class="results-card" *ngIf="result">
+  <!-- Analysis results -->
+  <div class="results-card" *ngIf="result && !practiceActive && !practiceComplete">
     <div class="metadata">
-      <div class="meta-row" *ngIf="result.title">
-        <span class="label">Title</span><span>{{ result.title }}</span>
-      </div>
-      <div class="meta-row" *ngIf="result.composer">
-        <span class="label">Composer</span><span>{{ result.composer }}</span>
-      </div>
-      <div class="meta-row" *ngIf="result.key">
-        <span class="label">Key</span><span>{{ result.key }}</span>
-      </div>
-      <div class="meta-row" *ngIf="result.timeSignature">
-        <span class="label">Time</span><span>{{ result.timeSignature }}</span>
-      </div>
-      <div class="meta-row" *ngIf="result.tempo">
-        <span class="label">Tempo</span><span>{{ result.tempo }}</span>
-      </div>
+      <div class="meta-row" *ngIf="result.title"><span class="label">Title</span><span>{{ result.title }}</span></div>
+      <div class="meta-row" *ngIf="result.composer"><span class="label">Composer</span><span>{{ result.composer }}</span></div>
+      <div class="meta-row" *ngIf="result.key"><span class="label">Key</span><span>{{ result.key }}</span></div>
+      <div class="meta-row" *ngIf="result.timeSignature"><span class="label">Time</span><span>{{ result.timeSignature }}</span></div>
+      <div class="meta-row" *ngIf="result.tempo"><span class="label">Tempo</span><span>{{ result.tempo }}</span></div>
     </div>
 
     <h2>🎼 Notes</h2>
@@ -66,5 +52,65 @@
         <span class="note-dur">{{ n.duration }}</span>
       </div>
     </div>
+
+    <div class="bpm-row">
+      <span class="bpm-label">Practice speed</span>
+      <input type="range" min="40" max="180" step="5" [value]="bpm" (input)="onBpmInput($event)" />
+      <span class="bpm-val">{{ bpm }} BPM</span>
+    </div>
+
+    <button class="btn btn-practice" (click)="startPractice()">🎹 Start Practice</button>
+  </div>
+
+  <!-- Active practice -->
+  <div class="practice-card" *ngIf="practiceActive && result">
+    <div class="practice-header">
+      <h2>🎤 Practice</h2>
+      <button class="stop-btn" (click)="stopPractice()">✕ Stop</button>
+    </div>
+
+    <div class="bpm-row">
+      <span class="bpm-label">Speed</span>
+      <input type="range" min="40" max="180" step="5" [value]="bpm" (input)="onBpmInput($event)" />
+      <span class="bpm-val">{{ bpm }} BPM</span>
+    </div>
+
+    <div class="canvas-wrap">
+      <canvas #staffCanvas></canvas>
+    </div>
+
+    <div class="practice-footer">
+      <div class="detected-row">
+        <span class="det-label">Hearing:</span>
+        <span class="det-note" [class.match]="isMatch">{{ detectedNote || '—' }}</span>
+      </div>
+      <div class="progress-text">{{ currentNoteIndex }} / {{ result.notes.length }}</div>
+    </div>
+  </div>
+
+  <!-- Practice complete -->
+  <div class="complete-card" *ngIf="practiceComplete && result">
+    <div class="complete-emoji">{{ accuracy >= 80 ? '🎉' : accuracy >= 50 ? '👍' : '💪' }}</div>
+    <h2>Practice Complete</h2>
+    <div class="accuracy-score">{{ accuracy }}%</div>
+    <div class="accuracy-label">accuracy</div>
+
+    <div class="result-legend">
+      <span class="leg-correct">● Correct</span>
+      <span class="leg-wrong">● Needs work</span>
+    </div>
+
+    <div class="result-staff-wrap">
+      <canvas #resultCanvas></canvas>
+    </div>
+
+    <div class="bpm-row">
+      <span class="bpm-label">Speed</span>
+      <input type="range" min="40" max="180" step="5" [value]="bpm" (input)="onBpmInput($event)" />
+      <span class="bpm-val">{{ bpm }} BPM</span>
+    </div>
+
+    <button class="btn btn-practice" (click)="startPractice()">🔄 Try Again</button>
+    <button class="btn btn-secondary retry-btn" (click)="practiceComplete = false">← Back to Results</button>
   </div>
 </div>
