@@ -69,12 +69,6 @@
       <button class="stop-btn" (click)="stopPractice()">✕ Stop</button>
     </div>
 
-    <div class="bpm-row">
-      <span class="bpm-label">Speed</span>
-      <input type="range" min="40" max="180" step="5" [value]="bpm" (input)="onBpmInput($event)" />
-      <span class="bpm-val">{{ bpm }} BPM</span>
-    </div>
-
     <div class="canvas-wrap">
       <canvas #staffCanvas></canvas>
     </div>
@@ -100,8 +94,8 @@
       <span class="leg-wrong">● Needs work</span>
     </div>
 
-    <div class="result-staff-wrap">
-      <canvas #resultCanvas></canvas>
+    <div class="sheet-overlay-wrap" [style.backgroundImage]="filePreview ? 'url(' + filePreview + ')' : null">
+      <canvas #resultCanvas class="result-overlay-canvas"></canvas>
     </div>
 
     <div class="bpm-row">

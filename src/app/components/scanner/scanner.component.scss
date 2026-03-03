@@ -263,11 +263,31 @@
   .leg-wrong   { color: #f44336; }
 }
 
-.result-staff-wrap {
-  background: #0a0f1e;
+.sheet-overlay-wrap {
+  position: relative;
   border-radius: 0.75rem;
-  overflow-y: auto;
-  max-height: 420px;
+  overflow: hidden;
   margin-bottom: 1rem;
-  canvas { display: block; width: 100%; }
+  background: #0a0f1e;
+  background-size: cover;
+  background-position: top center;
+  background-repeat: no-repeat;
+  max-height: 520px;
+  overflow-y: auto;
+
+  // Dark tint over the image so notation is readable
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 15, 30, 0.62);
+    pointer-events: none;
+  }
+
+  .result-overlay-canvas {
+    display: block;
+    width: 100%;
+    position: relative;
+    z-index: 1; // above the tint
+  }
 }

@@ -360,14 +360,13 @@ export class ScannerComponent implements OnDestroy {
     canvas.height = (lastRow + 1) * ROW_H + 10;
 
     const ctx = canvas.getContext('2d')!;
-    ctx.fillStyle = '#0a0f1e';
-    ctx.fillRect(0, 0, W, canvas.height);
+    ctx.clearRect(0, 0, W, canvas.height);
 
     // ── Staff lines + pitch labels for each row ───────────────────────────
     for (let r = 0; r <= lastRow; r++) {
       const sb = r * ROW_H + TOP_PAD + STAFF_H;
 
-      ctx.strokeStyle = 'rgba(226,185,111,0.4)';
+      ctx.strokeStyle = 'rgba(226,185,111,0.75)';
       ctx.lineWidth = 1;
       for (let li = 0; li < 5; li++) {
         const ly = sb - li * LINE_SP;
@@ -384,7 +383,7 @@ export class ScannerComponent implements OnDestroy {
       ctx.stroke();
 
       // Pitch labels
-      ctx.fillStyle = 'rgba(226,185,111,0.45)';
+      ctx.fillStyle = 'rgba(226,185,111,0.85)';
       ctx.font = '8px monospace';
       ctx.textAlign = 'right';
       for (let li = 0; li < 5; li++) {
