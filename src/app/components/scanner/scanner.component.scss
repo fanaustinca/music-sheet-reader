@@ -276,12 +276,11 @@
   max-height: 520px;
   overflow-y: auto;
 
-  // Dark tint over the image so notation is readable
   &::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(10, 15, 30, 0.62);
+    background: rgba(10, 15, 30, 0.25);
     pointer-events: none;
   }
 
