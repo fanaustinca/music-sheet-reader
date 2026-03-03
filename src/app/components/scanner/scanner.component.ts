@@ -319,11 +319,20 @@ export class ScannerComponent implements OnDestroy {
 
   // ── Static result staff ────────────────────────────────────────────────────
 
-  private renderResultStaff(): void {
+  private async renderResultStaff(): Promise<void> {
     const canvas = this.resultCanvasRef?.nativeElement;
     if (!canvas || !this.result) return;
 
     const W = canvas.parentElement?.clientWidth ?? 360;
+
+    // If we have an image AND Gemini returned box coordinates, overlay on it
+    const hasBoxes = this.result.notes.some(n => n.box);
+    if (this.filePreview && hasBoxes) {
+      await this.renderNotesOnImage(canvas, W);
+      return;
+    }
+
+    // Fallback: traditional row notation
     canvas.width = W;
 
     const LINE_SP    = 14;
@@ -406,6 +415,56 @@ export class ScannerComponent implements OnDestroy {
       ctx.font = '8px monospace';
       ctx.textAlign = 'center';
       ctx.fillText(note.note, l.x, l.staffBottom + BOT_PAD - 4);
+    }
+  }
+
+  private async renderNotesOnImage(canvas: HTMLCanvasElement, W: number): Promise<void> {
+    const img = new Image();
+    await new Promise<void>(resolve => { img.onload = () => resolve(); img.src = this.filePreview!; });
+
+    const H = Math.round(W * img.naturalHeight / img.naturalWidth);
+    canvas.width  = W;
+    canvas.height = H;
+
+    const ctx = canvas.getContext('2d')!;
+    ctx.clearRect(0, 0, W, H);
+
+    for (let i = 0; i < this.result!.notes.length; i++) {
+      const note = this.result!.notes[i];
+      if (!note.box) continue;
+
+      const [yMin, xMin, yMax, xMax] = note.box;
+      const cx = (xMin + xMax) / 2 / 1000 * W;
+      const cy = (yMin + yMax) / 2 / 1000 * H;
+      const r  = Math.max(7, ((xMax - xMin) / 1000 * W) / 2);
+
+      const color = this.noteResults[i] === 'correct' ? '#4caf50' : '#f44336';
+
+      // Glow ring
+      ctx.save();
+      ctx.shadowColor = color;
+      ctx.shadowBlur  = 14;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.strokeStyle = color;
+      ctx.lineWidth   = 2.5;
+      ctx.stroke();
+
+      // Filled dot
+      ctx.globalAlpha = 0.45;
+      ctx.fillStyle   = color;
+      ctx.fill();
+      ctx.restore();
+
+      // Note label above the circle
+      ctx.save();
+      ctx.font      = `bold ${Math.max(8, r)}px monospace`;
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = 'rgba(0,0,0,0.9)';
+      ctx.shadowBlur  = 4;
+      ctx.fillText(note.note, cx, cy - r - 3);
+      ctx.restore();
     }
   }
 

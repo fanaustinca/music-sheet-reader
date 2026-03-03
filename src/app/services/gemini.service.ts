@@ -6,6 +6,8 @@ import { environment } from '../../environments/environment';
 export interface NoteEntry {
   note: string;
   duration: string;
+  /** [y_min, x_min, y_max, x_max] normalised 0-1000 relative to image size */
+  box?: [number, number, number, number];
 }
 
 export interface SheetAnalysis {
@@ -24,7 +26,7 @@ export class GeminiService {
   constructor(private http: HttpClient) {}
 
   analyzeSheet(base64Data: string, mimeType: string): Observable<SheetAnalysis> {
-    const prompt = `You are a professional music notation expert. Analyze this sheet music and extract the following information. Respond ONLY with a valid JSON object, no markdown, no explanation.
+    const prompt = `You are a professional music notation expert. Analyze this sheet music image and extract the following information. Respond ONLY with a valid JSON object, no markdown, no explanation.
 
 {
   "title": "song title or empty string if not visible",
@@ -33,13 +35,13 @@ export class GeminiService {
   "timeSignature": "time signature e.g. 4/4, 3/4",
   "tempo": "tempo marking e.g. Allegro, 120 BPM, or empty string if not visible",
   "notes": [
-    { "note": "C4", "duration": "quarter" },
-    { "note": "D4", "duration": "half" }
+    { "note": "C4", "duration": "quarter", "box": [y_min, x_min, y_max, x_max] }
   ]
 }
 
 For note durations use: whole, half, quarter, eighth, sixteenth.
-List all notes in order as they appear in the sheet music.`;
+For "box": the bounding box of each individual notehead as [y_min, x_min, y_max, x_max] with all values normalised 0-1000 relative to the image width and height.
+List every note in left-to-right, top-to-bottom order as it appears on the sheet.`;
 
     const body = {
       contents: [{
