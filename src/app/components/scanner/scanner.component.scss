@@ -276,14 +276,6 @@
   max-height: 520px;
   overflow-y: auto;
 
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: rgba(10, 15, 30, 0.25);
-    pointer-events: none;
-  }
-
   .result-overlay-canvas {
     display: block;
     width: 100%;
