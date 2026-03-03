@@ -9,7 +9,7 @@
     <ng-container *ngIf="!filePreview && !isPdf">
       <div class="placeholder"><span>📄</span><p>No file selected</p></div>
     </ng-container>
-    <div *ngIf="isPdf" class="pdf-preview"><span>📋</span><p>PDF ready to analyze</p></div>
+    <div *ngIf="isPdf && !filePreview" class="pdf-preview"><span>📋</span><p>Rendering PDF preview…</p></div>
     <img *ngIf="filePreview" [src]="filePreview" alt="Music sheet preview" />
   </div>
 

@@ -50,21 +50,46 @@ export class ScannerComponent implements OnDestroy {
 
   // ── File handling ──────────────────────────────────────────────────────────
 
-  onFileSelected(event: Event) {
+  async onFileSelected(event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
-    this.mimeType = file.type || 'image/jpeg';
-    this.isPdf = file.type === 'application/pdf';
-    this.result = null;
-    this.error = '';
+    this.mimeType  = file.type || 'image/jpeg';
+    this.isPdf     = file.type === 'application/pdf';
+    this.result    = null;
+    this.error     = '';
+    this.filePreview = null;
     this.practiceComplete = false;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const data = e.target?.result as string;
-      this.filePreview = this.isPdf ? null : data;
-      this.base64Data = data.split(',')[1];
-    };
-    reader.readAsDataURL(file);
+
+    // Read as data URL for Gemini base64
+    const dataUrl = await new Promise<string>(resolve => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target!.result as string);
+      reader.readAsDataURL(file);
+    });
+    this.base64Data = dataUrl.split(',')[1];
+
+    if (this.isPdf) {
+      try { this.filePreview = await this.pdfToImage(file); } catch { /* no preview */ }
+    } else {
+      this.filePreview = dataUrl;
+    }
+  }
+
+  private async pdfToImage(file: File): Promise<string> {
+    const pdfjsLib = await import('pdfjs-dist');
+    pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+      'pdfjs-dist/build/pdf.worker.min.mjs',
+      import.meta.url
+    ).href;
+    const buf  = await file.arrayBuffer();
+    const pdf  = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
+    const page = await pdf.getPage(1);
+    const vp   = page.getViewport({ scale: 2 });
+    const offscreen       = document.createElement('canvas');
+    offscreen.width       = vp.width;
+    offscreen.height      = vp.height;
+    await page.render({ canvasContext: offscreen.getContext('2d') as any, viewport: vp }).promise;
+    return offscreen.toDataURL('image/jpeg', 0.92);
   }
 
   analyze() {
