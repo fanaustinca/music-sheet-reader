@@ -88,7 +88,7 @@ export class ScannerComponent implements OnDestroy {
     const offscreen       = document.createElement('canvas');
     offscreen.width       = vp.width;
     offscreen.height      = vp.height;
-    await page.render({ canvasContext: offscreen.getContext('2d') as any, viewport: vp }).promise;
+    await page.render({ canvas: offscreen, viewport: vp }).promise;
     return offscreen.toDataURL('image/jpeg', 0.92);
   }
 
