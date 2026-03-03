@@ -269,9 +269,10 @@
   overflow: hidden;
   margin-bottom: 1rem;
   background: #0a0f1e;
-  background-size: cover;
+  background-size: 100% auto;
   background-position: top center;
   background-repeat: no-repeat;
+  background-attachment: local;
   max-height: 520px;
   overflow-y: auto;
 
