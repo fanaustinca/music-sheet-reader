@@ -133,8 +133,7 @@ STEP 7 — UPDATE THE ANGULAR APP
 
     export const environment = {
       production: false,
-      geminiApiKey: 'AIzaSyDWz05hQ7g7xY38zQflDIwa7su6qNBv5SQ',
-      audiverisApiUrl: 'https://xxxx-xxxx-xxxx.trycloudflare.com'
+      audiverisApiUrl: 'https://api.flamebots.org'
     };
 
   Then rebuild the Angular app:
