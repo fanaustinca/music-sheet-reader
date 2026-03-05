@@ -44,5 +44,4 @@ __screenshots__/
 .DS_Store
 Thumbs.db
 
-# Environment files (contain API keys)
-src/environments/environment*.ts
+# Environment files
