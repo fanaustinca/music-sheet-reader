@@ -1,0 +1,256 @@
+================================================================================
+  MUSIC SHEET READER — AUDIVERIS BACKEND SERVER SETUP GUIDE
+  Ubuntu 24.04 x86_64
+================================================================================
+
+This guide explains how to set up the Audiveris OMR backend server on a fresh
+Ubuntu 24.04 machine and connect it to the Angular music-sheet-reader app.
+
+--------------------------------------------------------------------------------
+OVERVIEW
+--------------------------------------------------------------------------------
+
+The Angular app (music-sheet-reader) uses two backends for sheet music analysis:
+
+  1. PRIMARY:  Audiveris (open-source OMR engine) — runs on this server
+  2. FALLBACK: Google Gemini API — used automatically if Audiveris fails
+
+The Node.js server wraps Audiveris and exposes it as an HTTP API:
+  POST /analyze  — accepts base64 image/PDF, returns SheetAnalysis JSON
+  GET  /health   — liveness check
+
+The server is made public using Cloudflare Tunnel (free, no port forwarding).
+
+--------------------------------------------------------------------------------
+STEP 1 — INSTALL SYSTEM DEPENDENCIES
+--------------------------------------------------------------------------------
+
+  sudo apt update && sudo apt install -y tesseract-ocr unzip wget curl
+
+  tesseract-ocr  — required by Audiveris for text recognition (titles, tempo)
+  unzip          — required by the server to extract .mxl files
+  wget / curl    — for downloading packages
+
+--------------------------------------------------------------------------------
+STEP 2 — INSTALL AUDIVERIS 5.9.0
+--------------------------------------------------------------------------------
+
+  # Download the .deb package
+  wget "https://github.com/Audiveris/audiveris/releases/download/5.9.0/Audiveris-5.9.0-ubuntu24.04-x86_64.deb" -O /tmp/audiveris.deb
+
+  # Install it
+  sudo dpkg -i /tmp/audiveris.deb
+
+  # Fix any missing dependencies
+  sudo apt-get install -f
+
+  NOTE: You will see this error — it is harmless, ignore it:
+    "xdg-desktop-menu: No writable system menu directory found"
+    "dpkg: error processing package audiveris (--install): ... exit status 3"
+  This happens because WSL/headless Ubuntu has no desktop environment.
+  Audiveris is still installed correctly at /opt/audiveris/bin/Audiveris
+
+  # Verify installation
+  /opt/audiveris/bin/Audiveris --help
+
+--------------------------------------------------------------------------------
+STEP 3 — INSTALL NODE.JS 22
+--------------------------------------------------------------------------------
+
+  curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+  sudo apt install -y nodejs
+
+  # Verify
+  node --version   # should show v22.x.x
+  npm --version
+
+--------------------------------------------------------------------------------
+STEP 4 — COPY THE SERVER FILES
+--------------------------------------------------------------------------------
+
+  The server lives in the project at:  music-sheet-reader/server/
+
+  Files needed:
+    server/
+      package.json
+      server.js
+      parse-musicxml.js
+
+  Copy them to the new machine (e.g. via git clone, scp, or USB).
+  Then install dependencies:
+
+    cd /path/to/music-sheet-reader/server
+    npm install
+
+--------------------------------------------------------------------------------
+STEP 5 — START THE SERVER
+--------------------------------------------------------------------------------
+
+  cd /path/to/music-sheet-reader/server
+  PORT=3001 npm start
+
+  You should see:
+    Audiveris server listening on port 3001
+    Audiveris binary: /opt/audiveris/bin/Audiveris
+
+  Test it:
+    curl http://localhost:3001/health
+    # → {"status":"ok"}
+
+  NOTE: If port 3001 is already in use, pick any free port (e.g. 3002).
+  If Audiveris is installed somewhere other than /opt/audiveris/bin/Audiveris,
+  override the path:
+    AUDIVERIS_PATH=/your/path/Audiveris PORT=3001 npm start
+
+--------------------------------------------------------------------------------
+STEP 6 — MAKE IT PUBLIC WITH CLOUDFLARE TUNNEL
+--------------------------------------------------------------------------------
+
+  # Install cloudflared (one time)
+  curl -L --output /tmp/cloudflared.deb \
+    https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+  sudo dpkg -i /tmp/cloudflared.deb
+
+  # Start the tunnel (run in a separate terminal)
+  cloudflared tunnel --url http://localhost:3001
+
+  You will see warnings about ping_group_range — these are harmless, ignore them.
+  Look for the URL in the output:
+    INF  https://xxxx-xxxx-xxxx.trycloudflare.com
+
+  That is your public HTTPS URL. Copy it.
+
+  NOTE: This URL changes every time you restart the tunnel.
+  For a permanent URL, create a free Cloudflare account and use a named tunnel.
+
+--------------------------------------------------------------------------------
+STEP 7 — UPDATE THE ANGULAR APP
+--------------------------------------------------------------------------------
+
+  Edit:  src/environments/environment.ts
+
+  Change audiverisApiUrl to your new tunnel URL:
+
+    export const environment = {
+      production: false,
+      geminiApiKey: 'AIzaSyDWz05hQ7g7xY38zQflDIwa7su6qNBv5SQ',
+      audiverisApiUrl: 'https://xxxx-xxxx-xxxx.trycloudflare.com'
+    };
+
+  Then rebuild the Angular app:
+    ng build
+  Or restart ng serve if running locally.
+
+--------------------------------------------------------------------------------
+STEP 8 — KEEP EVERYTHING RUNNING (OPTIONAL BUT RECOMMENDED)
+--------------------------------------------------------------------------------
+
+  Use tmux to keep processes alive when you close the terminal:
+
+    sudo apt install -y tmux
+
+    # Start a named session
+    tmux new -s music
+
+    # In the session, start server:
+    cd /path/to/music-sheet-reader/server && PORT=3001 npm start
+
+    # Press Ctrl+B then " to split pane, then start tunnel:
+    cloudflared tunnel --url http://localhost:3001
+
+    # Detach from tmux (processes keep running):
+    Ctrl+B then D
+
+    # Reattach later:
+    tmux attach -t music
+
+--------------------------------------------------------------------------------
+TROUBLESHOOTING
+--------------------------------------------------------------------------------
+
+Problem:  curl /health returns connection refused
+Fix:      Server is not running. Start it with PORT=3001 npm start
+
+Problem:  "Audiveris exited with error" in server logs
+Fix:      Check /opt/audiveris/bin/Audiveris --help works in terminal
+          Make sure tesseract-ocr is installed: tesseract --version
+
+Problem:  App shows "API error" from Gemini
+Fix:      Audiveris failed — server returned 500 and app fell back to Gemini
+          Check server terminal for the specific Audiveris error message
+
+Problem:  App shows "API error: high demand" from Gemini
+Fix:      Both Audiveris AND Gemini failed. Check server is running and
+          Audiveris binary path is correct.
+
+Problem:  Tunnel URL not working
+Fix:      Cloudflare tunnel may have restarted with a new URL.
+          Run cloudflared tunnel --url http://localhost:3001 again and
+          update audiverisApiUrl in environment.ts
+
+Problem:  dpkg error on Audiveris install
+Fix:      Run: sudo apt-get install -f
+          The "xdg-desktop-menu" error is safe to ignore on WSL/headless.
+
+--------------------------------------------------------------------------------
+FILE REFERENCE
+--------------------------------------------------------------------------------
+
+  Angular app root:           ~/Projects/music-sheet-reader/
+  Backend server:             ~/Projects/music-sheet-reader/server/
+  Audiveris binary:           /opt/audiveris/bin/Audiveris
+  Environment config:         src/environments/environment.ts
+  Analysis service:           src/app/services/analysis.service.ts
+  Gemini service (fallback):  src/app/services/gemini.service.ts
+  Scanner component:          src/app/components/scanner/scanner.component.ts
+
+--------------------------------------------------------------------------------
+CONTEXT FOR NEW CLAUDE CHAT SESSION
+--------------------------------------------------------------------------------
+
+Paste the following at the start of a new Claude Code conversation to give
+the AI full context about this project:
+
+--- PASTE BELOW THIS LINE ---
+
+I have an Angular music sheet reader app (music-sheet-reader) that uses two
+backends for sheet music analysis:
+
+1. PRIMARY: A Node.js/Express server (in server/) that wraps Audiveris 5.9.0
+   (an OMR engine installed at /opt/audiveris/bin/Audiveris on Ubuntu 24.04).
+   The server runs on PORT=3001 and is exposed publicly via Cloudflare Tunnel.
+   Key files:
+   - server/server.js — Express API with POST /analyze and GET /health
+   - server/parse-musicxml.js — Parses MusicXML output from Audiveris into
+     SheetAnalysis JSON: { title, composer, key, timeSignature, tempo, notes[] }
+   - server/package.json — deps: express, cors, multer, fast-xml-parser, uuid
+
+2. FALLBACK: Google Gemini API (gemini.service.ts). Used automatically when
+   Audiveris fails (server returns 500).
+
+Angular services:
+- src/app/services/analysis.service.ts — tries Audiveris first, catchError
+  falls back to GeminiService.analyzeSheet()
+- src/app/services/gemini.service.ts — calls Gemini API, returns SheetAnalysis
+  WITH bounding box coordinates (used for note overlay on result image)
+
+The SheetAnalysis interface (defined in gemini.service.ts):
+  { title: string, composer: string, key: string, timeSignature: string,
+    tempo: string, notes: Array<{ note: string, duration: string, box?: [...] }> }
+
+Audiveris notes do NOT have box coordinates. Gemini notes DO have box coords
+which power the visual overlay on the result screen.
+
+src/environments/environment.ts contains:
+  geminiApiKey, audiverisApiUrl (the Cloudflare tunnel URL)
+
+scanner.component.ts injects AnalysisService (not GeminiService directly).
+
+The app is Angular 21 standalone components. The server is plain Node.js.
+The machine running the server is Ubuntu 24.04 on WSL2.
+
+--- PASTE ABOVE THIS LINE ---
+
+================================================================================
+END OF SETUP GUIDE
+================================================================================

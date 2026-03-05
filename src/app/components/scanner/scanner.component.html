@@ -26,6 +26,17 @@
       📄 PDF
       <input type="file" accept="application/pdf" (change)="onFileSelected($event)" hidden />
     </label>
+    <label class="btn btn-secondary">
+      🎼 MusicXML
+      <input type="file" accept=".xml,.mxl" (change)="onXmlSelected($event)" hidden />
+    </label>
+  </div>
+
+  <div class="multi-section-row" *ngIf="isPdf">
+    <label class="toggle-label">
+      <input type="checkbox" [(ngModel)]="multiSection" />
+      Multiple sections on this page
+    </label>
   </div>
 
   <button class="btn btn-primary" (click)="analyze()" [disabled]="(!filePreview && !isPdf) || loading">
@@ -53,13 +64,32 @@
       </div>
     </div>
 
+    <div class="section-selector" *ngIf="sectionNotes.length > 1">
+      <span class="bpm-label">Practice section</span>
+      <div class="section-btns">
+        <button class="sec-btn" [class.active]="selectedSection === -1" (click)="selectedSection = -1">All</button>
+        <button class="sec-btn" *ngFor="let s of sectionNotes; let i = index"
+                [class.active]="selectedSection === i" (click)="selectedSection = i">{{ i + 1 }}</button>
+      </div>
+    </div>
+
     <div class="bpm-row">
       <span class="bpm-label">Practice speed</span>
       <input type="range" min="40" max="180" step="5" [value]="bpm" (input)="onBpmInput($event)" />
       <span class="bpm-val">{{ bpm }} BPM</span>
     </div>
 
-    <button class="btn btn-practice" (click)="startPractice()">🎹 Start Practice</button>
+    <div class="bpm-row">
+      <span class="bpm-label">Repeats</span>
+      <button class="repeat-btn" (click)="repeatCount = repeatCount > 1 ? repeatCount - 1 : 1">−</button>
+      <span class="bpm-val" style="text-align:center">×{{ repeatCount }}</span>
+      <button class="repeat-btn" (click)="repeatCount = repeatCount < 8 ? repeatCount + 1 : 8">+</button>
+    </div>
+
+    <div class="action-row">
+      <button class="btn btn-practice" (click)="startPractice()">🎹 Start Practice</button>
+      <button class="btn btn-secondary" (click)="downloadPdf()">⬇ Download PDF</button>
+    </div>
   </div>
 
   <!-- Active practice -->
@@ -78,7 +108,7 @@
         <span class="det-label">Hearing:</span>
         <span class="det-note" [class.match]="isMatch">{{ detectedNote || '—' }}</span>
       </div>
-      <div class="progress-text">{{ currentNoteIndex }} / {{ result.notes.length }}</div>
+      <div class="progress-text">{{ currentNoteIndex }} / {{ activeNotes.length }}</div>
     </div>
   </div>
 
@@ -94,8 +124,8 @@
       <span class="leg-wrong">● Needs work</span>
     </div>
 
-    <div class="sheet-overlay-wrap" [style.backgroundImage]="filePreview ? 'url(' + filePreview + ')' : null">
-      <canvas #resultCanvas class="result-overlay-canvas"></canvas>
+    <div class="sheet-overlay-wrap">
+      <div #vexContainer class="vex-sheet"></div>
     </div>
 
     <div class="bpm-row">
@@ -105,6 +135,7 @@
     </div>
 
     <button class="btn btn-practice" (click)="startPractice()">🔄 Try Again</button>
+    <button class="btn btn-secondary" (click)="downloadPdf()">⬇ Download PDF</button>
     <button class="btn btn-secondary retry-btn" (click)="practiceComplete = false">← Back to Results</button>
   </div>
 </div>
