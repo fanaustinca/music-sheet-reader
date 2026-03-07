@@ -22,7 +22,8 @@ gcloud run deploy music-server \
   --memory 4Gi \
   --cpu 2 \
   --timeout 120 \
-  --port 8080
+  --port 8080 \
+  --execution-environment gen2
 
 echo "=== Building frontend ==="
 cd ..
